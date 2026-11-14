@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+/* Donker thema via de klasse `dark` op <html> (gezet door lib/theme.ts en index.html). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
+body {
+  @apply bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+}
+.alg {
+  @apply font-mono tracking-tight;
+}
+.card {
+  @apply rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:shadow-none;
+}
+.btn {
+  @apply inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-100 active:bg-slate-200 disabled:opacity-40 disabled:pointer-events-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:active:bg-slate-600;
+}
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 active:bg-indigo-700 disabled:opacity-40 disabled:pointer-events-none;
+}
+.chip {
+  @apply inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium transition;
+}
+.chip-on {
+  @apply border-indigo-600 bg-indigo-600 text-white;
+}
+.chip-off {
+  @apply border-slate-300 bg-white text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700;
+}
+twisty-player {
+  width: 100%;
+  height: 100%;
+}
