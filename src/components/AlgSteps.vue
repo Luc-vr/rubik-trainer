@@ -1,20 +1,22 @@
 <script setup lang="ts">
 /**
  * 2D-stappenplan: het algoritme gegroepeerd per trigger, met per zet de notatie
- * en een Nederlandse beschrijving. De huidige zet wordt gemarkeerd; klikken op
+ * en een beschrijving in de gekozen taal. De huidige zet wordt gemarkeerd; klikken op
  * een zet laat de 3D-speler naar die zet springen.
  */
 import { computed } from 'vue'
 import type { AlgStep } from '../data/types'
-import { describeMove, leafMoves } from '../lib/notation'
+import { leafMoves } from '../lib/notation'
+import { useI18n } from '../lib/i18n'
 
 const props = defineProps<{ steps: AlgStep[]; current: number; total: number }>()
 const emit = defineEmits<{ select: [index: number] }>()
+const { t, move } = useI18n()
 
 const groups = computed(() => {
   let i = 0
   return props.steps.map((s) => {
-    const moves = leafMoves(s.moves).map((m) => ({ text: m, desc: describeMove(m), index: i++ }))
+    const moves = leafMoves(s.moves).map((m) => ({ text: m, desc: move(m), index: i++ }))
     return { ...s, moves, start: moves[0]?.index ?? 0, end: i }
   })
 })
@@ -47,7 +49,7 @@ const groups = computed(() => {
                   : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-indigo-400'
             "
             :aria-current="m.index === current ? 'step' : undefined"
-            :title="`Speel ${m.text} af`"
+            :title="t('playMove', { move: m.text })"
             @click="emit('select', m.index)"
           >
             <span class="alg text-sm font-bold">{{ m.text }}</span>
@@ -58,7 +60,7 @@ const groups = computed(() => {
     </li>
   </ol>
   <p class="mt-2 text-xs text-slate-500 dark:text-slate-400" aria-live="polite">
-    <template v-if="current >= total">Klaar: de case is opgelost.</template>
-    <template v-else>Zet {{ current + 1 }} van {{ total }}</template>
+    <template v-if="current >= total">{{ t('stepsDone') }}</template>
+    <template v-else>{{ t('stepOf', { n: current + 1, total }) }}</template>
   </p>
 </template>

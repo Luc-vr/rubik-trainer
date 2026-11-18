@@ -12,8 +12,16 @@ import { averageOf, best, formatSolve, formatTime, mean, type Penalty, type Solv
 import { useSelection } from '../lib/useSelection'
 import { useTimes } from '../stores/times'
 import { useSettings } from '../stores/settings'
+import { useI18n } from '../lib/i18n'
 
 const HOLD_MS = 300
+const { t, lc } = useI18n()
+/** Casenaam in de gekozen taal. */
+const caseName = (c: AlgCase) => lc(c).name
+const nameOf = (id: string) => {
+  const c = getCase(id)
+  return c ? caseName(c) : id
+}
 
 const times = useTimes()
 const settings = useSettings()
@@ -160,7 +168,7 @@ function setPenalty(s: Solve, p: Penalty) {
   times.setPenalty(s.id, s.penalty === p ? 'none' : p)
 }
 function removeSolve(s: Solve) {
-  if (window.confirm(`Tijd ${formatSolve(s)} verwijderen?`)) times.remove(s.id)
+  if (window.confirm(t('deleteConfirm', { time: formatSolve(s) }))) times.remove(s.id)
 }
 
 const recent = computed(() => [...times.solves].reverse().slice(0, 12))
@@ -186,9 +194,9 @@ const tableSorted = computed(() => [...perCase.value].sort((a, b) => a.c.set.loc
 
 <template>
   <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-    <h1 class="text-2xl font-bold">Timer per case</h1>
+    <h1 class="text-2xl font-bold">{{ t('timerTitle') }}</h1>
     <button type="button" class="btn" :aria-expanded="showSelector" @click="showSelector = !showSelector">
-      {{ showSelector ? 'Selectie verbergen' : `Selectie (${pool.length})` }}
+      {{ showSelector ? t('hideSelection') : t('selectionN', { n: pool.length }) }}
     </button>
   </div>
 
@@ -197,17 +205,17 @@ const tableSorted = computed(() => [...perCase.value].sort((a, b) => a.c.set.loc
   <section v-if="round" class="card mb-4 p-4">
     <div class="flex flex-wrap items-start justify-between gap-3">
       <div class="min-w-0 flex-1">
-        <h2 class="text-xs font-semibold tracking-wide text-slate-500 dark:text-slate-400 uppercase">Scramble (geel boven, groen voor)</h2>
+        <h2 class="text-xs font-semibold tracking-wide text-slate-500 dark:text-slate-400 uppercase">{{ t('scrambleHeading') }}</h2>
         <p class="alg mt-1 text-xl break-words sm:text-2xl" data-testid="scramble">{{ round.scramble.text }}</p>
-        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Begin met een opgeloste kubus. De scramble zet precies één van je gekozen cases op.</p>
+        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ t('scrambleHint') }}</p>
       </div>
       <label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
         <input v-model="settings.showPreview" type="checkbox" class="accent-indigo-600" />
-        3D-preview
+        {{ t('preview3d') }}
       </label>
     </div>
     <div v-if="settings.showPreview" class="mx-auto mt-2 aspect-square w-48">
-      <TwistyCube :setup="round.scramble.text" anchor="start" :hint="false" label="Preview van de gescramblede kubus" />
+      <TwistyCube :setup="round.scramble.text" anchor="start" :hint="false" :label="t('previewLabel')" />
     </div>
   </section>
 
@@ -217,7 +225,7 @@ const tableSorted = computed(() => [...perCase.value].sort((a, b) => a.c.set.loc
     :class="fullscreen ? 'fixed inset-0 z-50 rounded-none border-0' : 'min-h-56 cursor-pointer'"
     role="button"
     tabindex="0"
-    aria-label="Timer: houd spatie of het vlak ingedrukt tot het groen wordt, laat los om te starten"
+    :aria-label="t('timerAria')"
     @pointerdown="onPointerDown"
     @pointerup="onPointerUp"
     @pointercancel="onPointerUp"
@@ -227,11 +235,15 @@ const tableSorted = computed(() => [...perCase.value].sort((a, b) => a.c.set.loc
       {{ display }}
     </div>
     <p class="mt-3 text-center text-sm text-slate-500 dark:text-slate-400">
-      <template v-if="state === 'running'">Druk op een toets of tik om te stoppen</template>
-      <template v-else-if="state === 'ready'">Loslaten om te starten</template>
-      <template v-else-if="state === 'holding'">Blijf vasthouden…</template>
-      <template v-else-if="!round">Kies eerst cases om te oefenen.</template>
-      <template v-else>Houd <kbd class="rounded border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 px-1">spatie</kbd> ingedrukt (of tik en houd vast) tot de tijd groen wordt</template>
+      <template v-if="state === 'running'">{{ t('timerRunning') }}</template>
+      <template v-else-if="state === 'ready'">{{ t('timerReady') }}</template>
+      <template v-else-if="state === 'holding'">{{ t('timerHolding') }}</template>
+      <template v-else-if="!round">{{ t('timerNoCases') }}</template>
+      <template v-else>
+        {{ t('timerIdleBefore') }}
+        <kbd class="rounded border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 px-1">{{ t('spaceKey') }}</kbd>
+        {{ t('timerIdleAfter') }}
+      </template>
     </p>
   </section>
 
@@ -241,66 +253,66 @@ const tableSorted = computed(() => [...perCase.value].sort((a, b) => a.c.set.loc
       <CubeCase :case="last.case" :pre-auf="last.scramble.pre" :post-auf="last.scramble.post" />
     </div>
     <div class="min-w-0 flex-1">
-      <p class="text-sm text-slate-500 dark:text-slate-400">Dat was</p>
+      <p class="text-sm text-slate-500 dark:text-slate-400">{{ t('thatWas') }}</p>
       <p class="text-xl font-bold">
-        <RouterLink :to="`/case/${last.case.id}`" class="hover:underline">{{ last.case.name }}</RouterLink>
+        <RouterLink :to="`/case/${last.case.id}`" class="hover:underline">{{ caseName(last.case) }}</RouterLink>
         <span class="ml-2 font-mono tabular-nums">{{ formatSolve(lastSolve) }}</span>
       </p>
       <p class="alg text-slate-700 dark:text-slate-300">{{ last.case.alg }}</p>
       <div class="mt-2 flex flex-wrap gap-1.5">
         <button type="button" class="btn py-1" :class="lastSolve.penalty === '+2' ? 'border-amber-400 bg-amber-50 dark:bg-amber-500/15' : ''" @click="setPenalty(lastSolve, '+2')">+2</button>
         <button type="button" class="btn py-1" :class="lastSolve.penalty === 'DNF' ? 'border-rose-400 bg-rose-50 dark:bg-rose-500/15' : ''" @click="setPenalty(lastSolve, 'DNF')">DNF</button>
-        <button type="button" class="btn py-1 text-rose-600 dark:text-rose-400" @click="removeSolve(lastSolve)">Verwijderen</button>
+        <button type="button" class="btn py-1 text-rose-600 dark:text-rose-400" @click="removeSolve(lastSolve)">{{ t('delete') }}</button>
       </div>
     </div>
   </section>
 
   <div class="mt-6 grid gap-5 lg:grid-cols-2">
     <section class="card p-4">
-      <h2 class="mb-2 font-bold">Traagste cases <span class="text-sm font-normal text-slate-500 dark:text-slate-400">(oefen deze!)</span></h2>
-      <p v-if="slowest.length === 0" class="text-sm text-slate-500 dark:text-slate-400">Nog geen tijden.</p>
+      <h2 class="mb-2 font-bold">{{ t('slowestCases') }} <span class="text-sm font-normal text-slate-500 dark:text-slate-400">{{ t('practiceThese') }}</span></h2>
+      <p v-if="slowest.length === 0" class="text-sm text-slate-500 dark:text-slate-400">{{ t('noTimesYet') }}</p>
       <ol v-else class="space-y-1.5">
         <li v-for="(r, i) in slowest" :key="r.c.id" class="flex items-center gap-3">
           <span class="w-4 text-right text-xs text-slate-400 dark:text-slate-500">{{ i + 1 }}</span>
           <div class="h-10 w-10 shrink-0"><CubeCase :case="r.c" /></div>
-          <RouterLink :to="`/case/${r.c.id}`" class="flex-1 font-medium hover:underline">{{ r.c.name }}</RouterLink>
+          <RouterLink :to="`/case/${r.c.id}`" class="flex-1 font-medium hover:underline">{{ caseName(r.c) }}</RouterLink>
           <span class="font-mono text-sm tabular-nums">{{ formatTime(r.key) }}</span>
-          <span class="w-14 text-right text-xs text-slate-500 dark:text-slate-400">{{ r.ao5 !== null ? 'ao5' : `gem. (${r.n})` }}</span>
+          <span class="w-16 text-right text-xs text-slate-500 dark:text-slate-400">{{ r.ao5 !== null ? 'ao5' : t('meanN', { n: r.n }) }}</span>
         </li>
       </ol>
     </section>
 
     <section class="card p-4">
-      <h2 class="mb-2 font-bold">Laatste tijden</h2>
-      <p v-if="recent.length === 0" class="text-sm text-slate-500 dark:text-slate-400">Nog geen tijden.</p>
+      <h2 class="mb-2 font-bold">{{ t('recentTimes') }}</h2>
+      <p v-if="recent.length === 0" class="text-sm text-slate-500 dark:text-slate-400">{{ t('noTimesYet') }}</p>
       <ul v-else class="divide-y divide-slate-100 dark:divide-slate-800">
         <li v-for="s in recent" :key="s.id" class="flex items-center gap-2 py-1.5 text-sm">
           <span class="w-24 font-mono tabular-nums" :class="s.penalty === 'DNF' ? 'text-rose-600 dark:text-rose-400' : ''">{{ formatSolve(s) }}</span>
-          <RouterLink :to="`/case/${s.caseId}`" class="flex-1 truncate text-slate-600 dark:text-slate-400 hover:underline">{{ getCase(s.caseId)?.name ?? s.caseId }}</RouterLink>
+          <RouterLink :to="`/case/${s.caseId}`" class="flex-1 truncate text-slate-600 dark:text-slate-400 hover:underline">{{ nameOf(s.caseId) }}</RouterLink>
           <button type="button" class="rounded px-1.5 py-0.5 text-xs" :class="s.penalty === '+2' ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'" :aria-pressed="s.penalty === '+2'" @click="setPenalty(s, '+2')">+2</button>
           <button type="button" class="rounded px-1.5 py-0.5 text-xs" :class="s.penalty === 'DNF' ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-800 dark:text-rose-300' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'" :aria-pressed="s.penalty === 'DNF'" @click="setPenalty(s, 'DNF')">DNF</button>
-          <button type="button" class="rounded px-1.5 py-0.5 text-xs text-slate-400 dark:text-slate-500 hover:bg-rose-50 dark:hover:bg-rose-500/15 hover:text-rose-600 dark:hover:text-rose-400" :aria-label="`Verwijder ${formatSolve(s)}`" @click="removeSolve(s)">✕</button>
+          <button type="button" class="rounded px-1.5 py-0.5 text-xs text-slate-400 dark:text-slate-500 hover:bg-rose-50 dark:hover:bg-rose-500/15 hover:text-rose-600 dark:hover:text-rose-400" :aria-label="t('deleteTime', { time: formatSolve(s) })" @click="removeSolve(s)">✕</button>
         </li>
       </ul>
     </section>
   </div>
 
   <section v-if="tableSorted.length" class="card mt-5 overflow-x-auto p-4">
-    <h2 class="mb-2 font-bold">Statistiek per case</h2>
+    <h2 class="mb-2 font-bold">{{ t('statsPerCase') }}</h2>
     <table class="w-full text-sm">
       <thead class="text-left text-xs text-slate-500 dark:text-slate-400 uppercase">
         <tr>
-          <th class="py-1 pr-2 font-semibold">Case</th>
+          <th class="py-1 pr-2 font-semibold">{{ t('colCase') }}</th>
           <th class="px-2 text-right font-semibold">#</th>
-          <th class="px-2 text-right font-semibold">Beste</th>
+          <th class="px-2 text-right font-semibold">{{ t('colBest') }}</th>
           <th class="px-2 text-right font-semibold">ao5</th>
           <th class="px-2 text-right font-semibold">ao12</th>
-          <th class="pl-2 text-right font-semibold">Gem.</th>
+          <th class="pl-2 text-right font-semibold">{{ t('colMean') }}</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-mono tabular-nums">
         <tr v-for="r in tableSorted" :key="r.c.id">
-          <td class="py-1 pr-2 font-sans"><RouterLink :to="`/case/${r.c.id}`" class="hover:underline">{{ r.c.name }}</RouterLink></td>
+          <td class="py-1 pr-2 font-sans"><RouterLink :to="`/case/${r.c.id}`" class="hover:underline">{{ caseName(r.c) }}</RouterLink></td>
           <td class="px-2 text-right">{{ r.n }}</td>
           <td class="px-2 text-right">{{ formatTime(r.best) }}</td>
           <td class="px-2 text-right">{{ formatTime(r.ao5) }}</td>

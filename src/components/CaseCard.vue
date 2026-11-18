@@ -6,8 +6,10 @@ import CubeCase from './CubeCase.vue'
 import { useQuizStats } from '../stores/quizStats'
 import { useTimes } from '../stores/times'
 import { best, formatTime } from '../lib/stats'
+import { useI18n } from '../lib/i18n'
 
 const props = defineProps<{ case: AlgCase }>()
+const { t } = useI18n()
 const quiz = useQuizStats()
 const times = useTimes()
 
@@ -28,7 +30,7 @@ const pb = computed(() => best(times.byCase[props.case.id] ?? []))
     <span
       v-if="props.case.isTwoLook"
       class="absolute top-1 left-1 z-10 rounded bg-amber-100 dark:bg-amber-500/20 px-1 text-[10px] leading-4 font-bold text-amber-800 dark:text-amber-300"
-      title="Hoort bij 2-look"
+      :title="t('partOfTwoLook')"
       >2L</span
     >
     <div class="aspect-square w-full px-1 pt-2">
@@ -41,10 +43,10 @@ const pb = computed(() => best(times.byCase[props.case.id] ?? []))
         <span
           v-if="pct !== null"
           :class="pct >= 80 ? 'text-emerald-600 dark:text-emerald-400' : pct >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400'"
-          :title="`Quiz: ${q?.correct} goed, ${q?.wrong} fout`"
+          :title="t('quizScoreTitle', { correct: q?.correct ?? 0, wrong: q?.wrong ?? 0 })"
           >✓{{ q?.correct }} ✗{{ q?.wrong }}</span
         >
-        <span v-if="pb !== null" title="Beste tijd">⏱ {{ formatTime(pb) }}</span>
+        <span v-if="pb !== null" :title="t('bestTime')">⏱ {{ formatTime(pb) }}</span>
       </div>
     </div>
   </RouterLink>

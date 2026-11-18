@@ -8,6 +8,7 @@
  */
 import { onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
 import type { TwistyPlayer } from 'cubing/twisty'
+import { useI18n } from '../lib/i18n'
 
 export type Stickering = 'OLL' | 'PLL' | 'F2L' | 'full'
 
@@ -22,8 +23,9 @@ const props = withDefaults(
     hint?: boolean
     label?: string
   }>(),
-  { alg: '', setup: '', anchor: 'end', stickering: 'full', tempo: 1, hint: true, label: '3D-kubus' },
+  { alg: '', setup: '', anchor: 'end', stickering: 'full', tempo: 1, hint: true, label: '' },
 )
+const { t } = useI18n()
 
 const emit = defineEmits<{
   /** Index van de zet die nu bezig is / als volgende komt; `total` = aantal zetten. */
@@ -168,9 +170,9 @@ defineExpose({ play, pause, step, jumpToStart, jumpToEnd, playMove })
 
 <template>
   <div class="relative h-full w-full">
-    <twisty-player ref="el" :aria-label="label" />
+    <twisty-player ref="el" :aria-label="label || t('cube3d')" />
     <p v-if="failed" class="absolute inset-0 grid place-items-center p-4 text-center text-sm text-slate-500 dark:text-slate-400">
-      De 3D-kubus kon niet geladen worden.
+      {{ t('cubeLoadFailed') }}
     </p>
   </div>
 </template>

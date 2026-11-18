@@ -8,6 +8,7 @@ import type { AlgCase } from '../data/types'
 import { casePattern } from '../lib/cube'
 import LLDiagram from './LLDiagram.vue'
 import F2LDiagram from './F2LDiagram.vue'
+import { useI18n } from '../lib/i18n'
 
 const props = withDefaults(
   defineProps<{
@@ -24,7 +25,8 @@ const props = withDefaults(
 )
 
 const pattern = computed(() => casePattern(props.alg ?? props.case.alg, props.preAuf, props.postAuf))
-const title = computed(() => (props.anonymous ? 'Welke case is dit?' : props.case.name))
+const { t, lc } = useI18n()
+const title = computed(() => (props.anonymous ? t('whichCase') : lc(props.case).name))
 </script>
 
 <template>

@@ -6,7 +6,9 @@ import { SETS, type CubeSet } from '../data/types'
 import CaseCard from '../components/CaseCard.vue'
 import TwoLookToggle from '../components/TwoLookToggle.vue'
 import { useSettings } from '../stores/settings'
+import { useI18n } from '../lib/i18n'
 
+const { t, tg, setDesc } = useI18n()
 const props = defineProps<{ set: string }>()
 const settings = useSettings()
 const set = computed(() => props.set as CubeSet)
@@ -28,7 +30,7 @@ const count = computed(() => groups.value.reduce((n, g) => n + g.cases.length, 0
 
 <template>
   <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
-    <nav class="inline-flex rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 p-0.5 shadow-sm" aria-label="Kies set">
+    <nav class="inline-flex rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 p-0.5 shadow-sm" :aria-label="t('chooseSet')">
       <RouterLink
         v-for="s in SETS"
         :key="s"
@@ -41,15 +43,15 @@ const count = computed(() => groups.value.reduce((n, g) => n + g.cases.length, 0
     <TwoLookToggle v-if="hasTwoLook" />
   </div>
 
-  <h1 class="text-2xl font-bold">{{ SET_INFO[set].title }} <span class="text-slate-400 dark:text-slate-500">· {{ count }} cases</span></h1>
-  <p class="mb-6 text-slate-600 dark:text-slate-400">{{ SET_INFO[set].description }}</p>
+  <h1 class="text-2xl font-bold">{{ SET_INFO[set].title }} <span class="text-slate-400 dark:text-slate-500">· {{ count }} {{ t('cases') }}</span></h1>
+  <p class="mb-6 text-slate-600 dark:text-slate-400">{{ setDesc(set) }}</p>
 
-  <p v-if="count === 0" class="card p-6 text-center text-slate-500 dark:text-slate-400">Geen cases in deze selectie.</p>
+  <p v-if="count === 0" class="card p-6 text-center text-slate-500 dark:text-slate-400">{{ t('noCasesInSelection') }}</p>
 
   <div class="flex flex-wrap gap-x-8 gap-y-6">
     <section v-for="g in groups" :key="g.name" class="w-full sm:w-auto sm:max-w-full">
       <h2 class="mb-2 text-sm font-semibold tracking-wide text-slate-500 dark:text-slate-400 uppercase">
-        {{ g.name }} <span class="font-normal normal-case">({{ g.cases.length }})</span>
+        {{ tg(g.name) }} <span class="font-normal normal-case">({{ g.cases.length }})</span>
       </h2>
       <div class="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:gap-3">
         <CaseCard v-for="c in g.cases" :key="c.id" :case="c" class="sm:w-28" />

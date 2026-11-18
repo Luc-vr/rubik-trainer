@@ -7,7 +7,9 @@ import { computed, ref } from 'vue'
 import { CASES_BY_SET, GROUPS_BY_SET } from '../data'
 import { SETS, type CubeSet } from '../data/types'
 import CubeCase from './CubeCase.vue'
+import { useI18n } from '../lib/i18n'
 
+const { t, tg, lc } = useI18n()
 const selected = defineModel<string[]>({ required: true })
 const props = withDefaults(defineProps<{ initialSet?: CubeSet }>(), { initialSet: 'PLL' })
 
@@ -63,17 +65,17 @@ function onlyThis(filter: 'all' | 'twoLook') {
           <span v-if="countPerSet[s]" class="ml-0.5 text-xs opacity-80">({{ countPerSet[s] }})</span>
         </button>
       </div>
-      <p class="text-sm text-slate-600 dark:text-slate-400"><strong>{{ selected.length }}</strong> cases geselecteerd</p>
+      <p class="text-sm text-slate-600 dark:text-slate-400"><strong>{{ selected.length }}</strong> {{ t('casesSelected') }}</p>
     </div>
 
     <div class="mt-3 flex flex-wrap gap-1.5">
-      <button type="button" class="chip chip-off" @click="onlyThis('all')">Alle {{ activeSet }}</button>
-      <button v-if="activeSet !== 'F2L'" type="button" class="chip chip-off" @click="onlyThis('twoLook')">Alleen 2-look {{ activeSet }}</button>
-      <button type="button" class="chip chip-off" @click="setIds(setCases.map((c) => c.id), false)">Geen {{ activeSet }}</button>
-      <button v-if="selected.length" type="button" class="chip chip-off" @click="selected = []">Alles wissen</button>
+      <button type="button" class="chip chip-off" @click="onlyThis('all')">{{ t('selectAll', { set: activeSet }) }}</button>
+      <button v-if="activeSet !== 'F2L'" type="button" class="chip chip-off" @click="onlyThis('twoLook')">{{ t('selectTwoLook', { set: activeSet }) }}</button>
+      <button type="button" class="chip chip-off" @click="setIds(setCases.map((c) => c.id), false)">{{ t('selectNone', { set: activeSet }) }}</button>
+      <button v-if="selected.length" type="button" class="chip chip-off" @click="selected = []">{{ t('clearAll') }}</button>
     </div>
 
-    <div class="mt-3 flex flex-wrap gap-1.5" aria-label="Groepen">
+    <div class="mt-3 flex flex-wrap gap-1.5" :aria-label="t('groups')">
       <button
         v-for="g in groups"
         :key="g.name"
@@ -83,12 +85,12 @@ function onlyThis(filter: 'all' | 'twoLook') {
         :aria-pressed="g.all"
         @click="setIds(g.cases.map((c) => c.id), !g.all)"
       >
-        {{ g.name }} <span class="ml-1 opacity-75">{{ g.n }}/{{ g.cases.length }}</span>
+        {{ tg(g.name) }} <span class="ml-1 opacity-75">{{ g.n }}/{{ g.cases.length }}</span>
       </button>
     </div>
 
     <button type="button" class="mt-3 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline" :aria-expanded="showManual" @click="showManual = !showManual">
-      {{ showManual ? '▾' : '▸' }} Handmatig aanvinken
+      {{ showManual ? '▾' : '▸' }} {{ t('pickManually') }}
     </button>
     <div v-if="showManual" class="mt-2 grid grid-cols-5 gap-1.5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12">
       <button
@@ -98,7 +100,7 @@ function onlyThis(filter: 'all' | 'twoLook') {
         class="relative rounded-lg border p-1 transition"
         :class="sel.has(c.id) ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/15 ring-1 ring-indigo-500' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 opacity-60 hover:opacity-100'"
         :aria-pressed="sel.has(c.id)"
-        :title="c.name"
+        :title="lc(c).name"
         @click="toggle(c.id)"
       >
         <div class="aspect-square"><CubeCase :case="c" /></div>

@@ -8,7 +8,9 @@ import CubeCase from '../components/CubeCase.vue'
 import { AUFS, randomItem } from '../lib/cube'
 import { shuffle, useSelection, weightedPick } from '../lib/useSelection'
 import { useQuizStats } from '../stores/quizStats'
+import { useI18n } from '../lib/i18n'
 
+const { t, tg, lc } = useI18n()
 const quiz = useQuizStats()
 const selection = useSelection('quizSelection')
 
@@ -59,6 +61,8 @@ function answer(id: string) {
 }
 
 const isCorrect = computed(() => chosen.value !== null && chosen.value === current.value?.id)
+/** De huidige case met teksten in de gekozen taal. */
+const shown = computed(() => current.value && lc(current.value))
 
 function onKey(e: KeyboardEvent) {
   if (phase.value === 'question' && ['1', '2', '3', '4'].includes(e.key)) {
@@ -79,23 +83,21 @@ function start() {
 </script>
 
 <template>
-  <h1 class="text-2xl font-bold">Herkenningsquiz</h1>
-  <p class="mb-4 text-slate-600 dark:text-slate-400">
-    Je ziet een case vanuit een willekeurige hoek (willekeurige AUF). Kies de juiste naam. Cases die je vaak fout hebt, komen vaker terug.
-  </p>
+  <h1 class="text-2xl font-bold">{{ t('quizTitle') }}</h1>
+  <p class="mb-4 text-slate-600 dark:text-slate-400">{{ t('quizIntro') }}</p>
 
   <template v-if="phase === 'setup'">
     <CaseSelector v-model="selection" />
     <div class="mt-4 flex items-center gap-3">
-      <button type="button" class="btn-primary px-5 py-2.5 text-base" :disabled="pool.length === 0" @click="start">Start quiz</button>
-      <span v-if="pool.length === 0" class="text-sm text-rose-600 dark:text-rose-400">Kies minstens één case.</span>
+      <button type="button" class="btn-primary px-5 py-2.5 text-base" :disabled="pool.length === 0" @click="start">{{ t('startQuiz') }}</button>
+      <span v-if="pool.length === 0" class="text-sm text-rose-600 dark:text-rose-400">{{ t('pickAtLeastOne') }}</span>
     </div>
   </template>
 
-  <template v-else-if="current">
+  <template v-else-if="current && shown">
     <div class="mb-3 flex items-center justify-between text-sm">
-      <button type="button" class="text-indigo-600 dark:text-indigo-400 hover:underline" @click="phase = 'setup'">← Selectie aanpassen ({{ pool.length }})</button>
-      <span class="font-medium text-slate-600 dark:text-slate-400" aria-live="polite">Score: {{ session.correct }}/{{ session.total }}</span>
+      <button type="button" class="text-indigo-600 dark:text-indigo-400 hover:underline" @click="phase = 'setup'">{{ t('changeSelection', { n: pool.length }) }}</button>
+      <span class="font-medium text-slate-600 dark:text-slate-400" aria-live="polite">{{ t('score') }}: {{ session.correct }}/{{ session.total }}</span>
     </div>
 
     <div class="grid gap-5 md:grid-cols-2">
@@ -106,7 +108,7 @@ function start() {
       </div>
 
       <div>
-        <p class="mb-2 font-semibold">Welke {{ current.set }}-case is dit?</p>
+        <p class="mb-2 font-semibold">{{ t('whichSetCase', { set: current.set }) }}</p>
         <div class="grid grid-cols-2 gap-2">
           <button
             v-for="(o, i) in options"
@@ -125,24 +127,24 @@ function start() {
             :disabled="phase !== 'question'"
             @click="answer(o.id)"
           >
-            <span class="mr-1 text-xs text-slate-400 dark:text-slate-500">{{ i + 1 }}</span> {{ o.name }}
-            <span class="block text-xs font-normal text-slate-500 dark:text-slate-400">{{ o.group }}</span>
+            <span class="mr-1 text-xs text-slate-400 dark:text-slate-500">{{ i + 1 }}</span> {{ lc(o).name }}
+            <span class="block text-xs font-normal text-slate-500 dark:text-slate-400">{{ tg(o.group) }}</span>
           </button>
         </div>
 
         <div v-if="phase === 'answered'" class="mt-4 rounded-xl border p-4" :class="isCorrect ? 'border-emerald-300 dark:border-emerald-500/50 bg-emerald-50 dark:bg-emerald-500/15' : 'border-rose-300 dark:border-rose-500/50 bg-rose-50 dark:bg-rose-500/15'" role="status">
           <p class="text-lg font-bold" :class="isCorrect ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'">
-            {{ isCorrect ? 'Goed!' : 'Helaas, fout.' }}
+            {{ isCorrect ? t('correct') : t('wrong') }}
           </p>
-          <p class="mt-1">Dit is <strong>{{ current.name }}</strong> ({{ current.group }}).</p>
-          <p class="alg mt-1 text-slate-800 dark:text-slate-200">{{ current.alg }}</p>
-          <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">{{ current.recognition }}</p>
+          <p class="mt-1">{{ t('thisIs') }} <strong>{{ shown.name }}</strong> ({{ tg(shown.group) }}).</p>
+          <p class="alg mt-1 text-slate-800 dark:text-slate-200">{{ shown.alg }}</p>
+          <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">{{ shown.recognition }}</p>
           <div class="mt-3 flex flex-wrap gap-2">
-            <button type="button" class="btn-primary" @click="next">Volgende (Enter)</button>
-            <RouterLink :to="`/case/${current.id}`" class="btn">Bekijk {{ current.short }} →</RouterLink>
+            <button type="button" class="btn-primary" @click="next">{{ t('nextEnter') }}</button>
+            <RouterLink :to="`/case/${current.id}`" class="btn">{{ t('viewCase', { name: current.short }) }}</RouterLink>
           </div>
         </div>
-        <p v-else class="mt-3 text-xs text-slate-500 dark:text-slate-400">Tip: toets 1–4 om te antwoorden.</p>
+        <p v-else class="mt-3 text-xs text-slate-500 dark:text-slate-400">{{ t('quizKeyTip') }}</p>
       </div>
     </div>
   </template>

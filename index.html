@@ -8,11 +8,15 @@
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <title>CFOP-trainer</title>
     <script>
-      // Thema vóór de eerste render toepassen (geen witte flits). Zie src/lib/theme.ts.
+      // Thema en taal vóór de eerste render toepassen (geen witte flits).
+      // Zie src/lib/theme.ts en src/lib/locale.ts.
       try {
-        var t = (JSON.parse(localStorage.getItem('cfop-trainer:settings') || '{}') || {}).theme
+        var s = JSON.parse(localStorage.getItem('cfop-trainer:settings') || '{}') || {}
+        var t = s.theme
         if (t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches))
           document.documentElement.classList.add('dark')
+        var l = s.locale === 'nl' || s.locale === 'en' ? s.locale : /^nl\b/i.test(navigator.language || '') ? 'nl' : 'en'
+        document.documentElement.lang = l
       } catch (e) {}
     </script>
   </head>

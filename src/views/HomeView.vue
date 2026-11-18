@@ -8,7 +8,9 @@ import TwoLookToggle from '../components/TwoLookToggle.vue'
 import { useSettings } from '../stores/settings'
 import { useQuizStats } from '../stores/quizStats'
 import { useTimes } from '../stores/times'
+import { useI18n } from '../lib/i18n'
 
+const { t, setDesc } = useI18n()
 const settings = useSettings()
 const quiz = useQuizStats()
 const times = useTimes()
@@ -31,11 +33,8 @@ const sets = computed(() =>
 <template>
   <section class="mb-6 flex flex-wrap items-end justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Van 2-look naar full CFOP</h1>
-      <p class="mt-1 max-w-2xl text-slate-600 dark:text-slate-400">
-        Leer alle F2L-, OLL- en PLL-cases: bekijk hoe je ze herkent, speel het algoritme stap voor stap af, oefen de
-        herkenning in de quiz en train je tijden per case.
-      </p>
+      <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ t('homeTitle') }}</h1>
+      <p class="mt-1 max-w-2xl text-slate-600 dark:text-slate-400">{{ t('homeIntro') }}</p>
     </div>
     <TwoLookToggle />
   </section>
@@ -53,32 +52,32 @@ const sets = computed(() =>
       <div class="min-w-0">
         <h2 class="text-xl font-bold">{{ s.info.title }}</h2>
         <p class="text-3xl font-black tabular-nums text-indigo-600 dark:text-indigo-400">
-          {{ s.shown }}<span class="text-base font-semibold text-slate-400 dark:text-slate-500"> cases</span>
+          {{ s.shown }}<span class="text-base font-semibold text-slate-400 dark:text-slate-500"> {{ t('cases') }}</span>
         </p>
         <p class="text-xs text-slate-500 dark:text-slate-400">
-          {{ s.total }} totaal<template v-if="s.set !== 'F2L'"> · {{ s.twoLook }} in 2-look</template>
-          <template v-if="s.practiced"> · {{ s.practiced }} geoefend</template>
+          {{ t('total', { n: s.total }) }}<template v-if="s.set !== 'F2L'"> · {{ t('inTwoLook', { n: s.twoLook }) }}</template>
+          <template v-if="s.practiced"> · {{ t('practiced', { n: s.practiced }) }}</template>
         </p>
       </div>
     </RouterLink>
   </section>
 
   <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">
-    {{ SET_INFO.F2L.description }} {{ SET_INFO.OLL.description }} {{ SET_INFO.PLL.description }}
+    {{ setDesc('F2L') }} {{ setDesc('OLL') }} {{ setDesc('PLL') }}
   </p>
 
   <section class="mt-8 grid gap-4 sm:grid-cols-3">
     <RouterLink to="/quiz" class="card p-4 transition hover:border-indigo-300 dark:hover:border-indigo-500/60 hover:shadow-md">
-      <h2 class="font-bold">Herkenningsquiz →</h2>
-      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Zie een case vanuit een willekeurige hoek en kies de juiste naam uit vier opties.</p>
+      <h2 class="font-bold">{{ t('homeQuizTitle') }}</h2>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">{{ t('homeQuizText') }}</p>
     </RouterLink>
     <RouterLink to="/timer" class="card p-4 transition hover:border-indigo-300 dark:hover:border-indigo-500/60 hover:shadow-md">
-      <h2 class="font-bold">Timer per case →</h2>
-      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Krijg een scramble die precies jouw gekozen cases opzet en meet je tijd.</p>
+      <h2 class="font-bold">{{ t('homeTimerTitle') }}</h2>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">{{ t('homeTimerText') }}</p>
     </RouterLink>
     <RouterLink to="/notatie" class="card p-4 transition hover:border-indigo-300 dark:hover:border-indigo-500/60 hover:shadow-md">
-      <h2 class="font-bold">Notatie-uitleg →</h2>
-      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">R, U', r, M, x … met een 3D-demo per zet. Handig voor full OLL.</p>
+      <h2 class="font-bold">{{ t('homeNotationTitle') }}</h2>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">{{ t('homeNotationText') }}</p>
     </RouterLink>
   </section>
 </template>

@@ -6,11 +6,13 @@
 import { computed } from 'vue'
 import type { KPattern } from 'cubing/kpuzzle'
 import { FACE_GRIDS, GREY, STICKER_COLORS, pieceAt, stickerAt, type Face } from '../lib/cube'
+import { useI18n } from '../lib/i18n'
 
 const props = withDefaults(defineProps<{ pattern: KPattern; highlightPair?: boolean; title?: string }>(), {
   highlightPair: true,
   title: '',
 })
+const { t } = useI18n()
 
 const PAIR = new Set(['DRF', 'FR'])
 
@@ -76,7 +78,7 @@ const box = (() => {
 </script>
 
 <template>
-  <svg :viewBox="box" role="img" :aria-label="title || '3D-aanzicht van de F2L-case'" class="block h-full w-full">
+  <svg :viewBox="box" role="img" :aria-label="title || t('f2lDiagramLabel')" class="block h-full w-full">
     <title v-if="title">{{ title }}</title>
     <polygon v-for="f in faces" :key="f.face" :points="poly(f.outline)" fill="#1e293b" stroke="#1e293b" stroke-width="0.6" stroke-linejoin="round" />
     <polygon v-for="(s, i) in stickers" :key="i" :points="s.points" :fill="s.fill" stroke-linejoin="round" />

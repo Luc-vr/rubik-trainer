@@ -1,21 +1,32 @@
 <script setup lang="ts">
 import { RouterLink, RouterView, useRoute } from 'vue-router'
-import { computed, toRef } from 'vue'
-import ThemeToggle from './components/ThemeToggle.vue'
+import { computed, toRef, watchEffect } from 'vue'
+import SettingsMenu from './components/SettingsMenu.vue'
 import { useSettings } from './stores/settings'
 import { useThemeSync } from './lib/theme'
+import { useLocaleSync } from './lib/locale'
+import { useI18n, type MessageKey } from './lib/i18n'
 
-useThemeSync(toRef(useSettings(), 'theme'))
+const settings = useSettings()
+useThemeSync(toRef(settings, 'theme'))
+useLocaleSync(toRef(settings, 'locale'))
+const { t } = useI18n()
 
 const logo = `${import.meta.env.BASE_URL}favicon.svg`
 const route = useRoute()
-const links = [
-  { to: '/', label: 'Overzicht', match: ['home', 'set', 'case'] },
-  { to: '/quiz', label: 'Quiz', match: ['quiz'] },
-  { to: '/timer', label: 'Timer', match: ['timer'] },
-  { to: '/notatie', label: 'Notatie', match: ['notation'] },
-]
+const links = computed(() => [
+  { to: '/', label: t('navOverview'), match: ['home', 'set', 'case'] },
+  { to: '/quiz', label: t('navQuiz'), match: ['quiz'] },
+  { to: '/timer', label: t('navTimer'), match: ['timer'] },
+  { to: '/notatie', label: t('navNotation'), match: ['notation'] },
+])
 const active = computed(() => String(route.name ?? ''))
+
+// Paginatitel voor routes met een vaste titel; set- en casepagina's zetten hun eigen titel.
+watchEffect(() => {
+  const key = route.meta.titleKey as MessageKey | undefined
+  if (key) document.title = `${t(key)} · CFOP-trainer`
+})
 </script>
 
 <template>
@@ -26,7 +37,7 @@ const active = computed(() => String(route.name ?? ''))
           <img :src="logo" alt="" class="h-7 w-7" />
           <span class="hidden sm:inline">CFOP-trainer</span>
         </RouterLink>
-        <nav class="flex flex-1 justify-end gap-1 overflow-x-auto" aria-label="Hoofdmenu">
+        <nav class="flex flex-1 justify-end gap-1 overflow-x-auto" :aria-label="t('mainMenu')">
           <RouterLink
             v-for="l in links"
             :key="l.to"
@@ -37,7 +48,7 @@ const active = computed(() => String(route.name ?? ''))
             {{ l.label }}
           </RouterLink>
         </nav>
-        <ThemeToggle />
+        <SettingsMenu />
       </div>
     </header>
     <main class="mx-auto max-w-6xl px-4 py-5 sm:py-8">

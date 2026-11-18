@@ -6,11 +6,13 @@
 import { computed } from 'vue'
 import type { KPattern } from 'cubing/kpuzzle'
 import { DARK_GREY, FACE_GRIDS, STICKER_COLORS, faceStickers, patternFromAlg, AUFS, type Face } from '../lib/cube'
+import { useI18n } from '../lib/i18n'
 
 const props = withDefaults(
   defineProps<{ pattern: KPattern; mode: 'OLL' | 'PLL'; arrows?: boolean; title?: string }>(),
   { arrows: false, title: '' },
 )
+const { t } = useI18n()
 
 const CELL = 10
 const GAP = 1
@@ -98,7 +100,7 @@ const uid = `ah${Math.random().toString(36).slice(2, 8)}`
 </script>
 
 <template>
-  <svg :viewBox="`0 0 ${SIZE} ${SIZE}`" role="img" :aria-label="title || 'Bovenaanzicht van de case'" class="block h-full w-full">
+  <svg :viewBox="`0 0 ${SIZE} ${SIZE}`" role="img" :aria-label="title || t('llDiagramLabel')" class="block h-full w-full">
     <title v-if="title">{{ title }}</title>
     <defs>
       <marker :id="uid" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
